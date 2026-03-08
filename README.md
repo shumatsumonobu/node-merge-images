@@ -1,126 +1,196 @@
 # node-merge-images
-Merges images. You can optionally set the merging orientation (vertical or horizontal), margins between images, etc.
 
-Click [here](CHANGELOG.md) to see the change log.
+Merge multiple images into one with ImageMagick.
+Supports vertical/horizontal merging, custom spacing, free-form positioning, and grid layouts.
 
-- [node-merge-images](#node-merge-images)
-    - [Supported OS](#supported-os)
-    - [Requirements](#requirements)
-    - [Installation](#installation)
-    - [Image Merging API](#image-merging-api)
-        - [Usage](#usage)
-        - [Parameters](#parameters)
-        - [Return value](#return-value)
-        - [Throws](#throws)
-    - [Testing](#testing)
-    - [Author](#author)
-    - [License](#license)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ## Supported OS
+
 - Linux
-- MAC
+- macOS
 
 ## Requirements
-Requires imagemagick CLI tools to be installed.
-- For instance, if you're on OS X you can use Homebrew.
-    ```sh
-    brew install imagemagick
-    ```
-- For Linux, use yum.  
-    ```sh
-    sudo yum -y install ImageMagick
-    ```
 
-## Installation
+ImageMagick CLI tools must be installed on your system.
+
+**macOS** (Homebrew):
 ```sh
-npm install --save node-merge-images
+brew install imagemagick
 ```
 
-## Image Merging API
-### Usage
-- Merge vertically.  
-    ```js
-    const merge = require('node-merge-images');
+**Linux** (apt):
+```sh
+sudo apt-get install imagemagick
+```
 
-    await merge(['1.jpg', '2.jpg', '3.jpg'], 'out.jpg');
-    ```
-    <img width="500" src="screencaps/vertical-merge.png">
-- Merge horizontally.
-    ```js
-    const merge = require('node-merge-images');
+**Linux** (yum):
+```sh
+sudo yum -y install ImageMagick
+```
 
-    await merge(['1.jpg', '2.jpg', '3.jpg'], 'out.jpg', {direction: 'horizontal'});
-    ```
-    <img width="500" src="screencaps/horizontal-merge.png">
-- Merge vertically with 30px spacing.  
-    In the example, the background color is set to #000 with the background option.
-    ```js
-    const merge = require('node-merge-images');
+## Installation
 
-    await merge(['1.jpg', '2.jpg', '3.jpg'], 'out.jpg', {offset: 30, background: '#000'});
-    ```
-    <img width="500" src="screencaps/vertically-spaced-merges.png">
-- Merge horizontally with 30px spacing.  
-    In the example, the background color is set to #000 with the background option.
-    ```js
-    const merge = require('node-merge-images');
+```sh
+npm install node-merge-images
+```
 
-    await merge(['1.jpg', '2.jpg', '3.jpg'], 'out.jpg', {direction: 'horizontal', offset: 30, background: '#000'});
-    ```
-    <img width="500" src="screencaps/horizontally-spaced-merge.png">
-- Merge images of different sizes vertically.  
-    The image width after merging will be adjusted to the image with the maximum width.
-    ```js
-    const merge = require('node-merge-images');
+## Usage
 
-    await merge(['1.jpg', '2.jpg', '3.jpg'], 'out.jpg');
-    ```
-    <img width="500" src="screencaps/vertically-merge-of-different-sizes.png">
-- Merge images of different sizes horizontally.  
-    The image height after merging will be adjusted to the image with the maximum height.
-    ```js
-    const merge = require('node-merge-images');
+```js
+// CommonJS
+const mergeImages = require('node-merge-images');
 
-    await merge(['1.jpg', '2.jpg', '5.jpg'], 'out.jpg', {direction: 'horizontal', offset: 30});
-    ```
-    <img width="500" src="screencaps/horizontally-merge-of-different-sizes.png">
+// ESM
+import mergeImages from 'node-merge-images';
+```
 
-### Parameters
-- {string[]} inputPaths Path list of images to merge.
-- {string} outputPath Output destination path for merged images.
-- {'vertical'|'horizontal'} options.direction?  Direction of the merged image. Default is vertical.
-- {string} options.background?  
-    The background color of the merged image.  
-    This option accepts a color name, a hex color, or a numerical RGB, RGBA, HSL, HSLA, CMYK, or CMYKA specification.  
-    For example, blue, #dddddff, rgb(255,255,255), etc.  
-    Default is white.  
-- {number} options.offset? Offset in pixels between each image. Default is 0.
+### Vertical merge (default)
 
-### Return value
-{Promise&lt;void&gt;
+```js
+await mergeImages(['1.jpg', '2.jpg', '3.jpg'], 'output.jpg');
+```
 
-### Throws
-- {TypeError} Input path is not Array.
-- {TypeError} Input path is empty.
-- {TypeError} Output path is empty.
-- {TypeError} The direction option is not "vertical" or "horizontal".
-- {TypeError} Offset option is not greater than or equal to 0.
-- {TypeError} Input path file not found.
-- {Error} Error executing convert command.
+<img width="150" src="screenshots/vertical.jpg">
+
+### Horizontal merge
+
+```js
+await mergeImages(['1.jpg', '2.jpg', '3.jpg'], 'output.jpg', {direction: 'horizontal'});
+```
+
+<img width="300" src="screenshots/horizontal.jpg">
+
+### Vertical merge with spacing
+
+Spacing is filled with the `background` color (`'#000'` in this example).
+
+```js
+await mergeImages(['1.jpg', '2.jpg', '3.jpg'], 'output.jpg', {offset: 30, background: '#000'});
+```
+
+<img width="150" src="screenshots/vertical-spacing.jpg">
+
+### Horizontal merge with spacing
+
+```js
+await mergeImages(['1.jpg', '2.jpg', '3.jpg'], 'output.jpg', {
+  direction: 'horizontal',
+  offset: 30,
+  background: '#000',
+});
+```
+
+<img width="300" src="screenshots/horizontal-spacing.jpg">
+
+### Merging images of different sizes
+
+When images have different dimensions, the output adjusts to the largest width (vertical) or height (horizontal).
+
+**Vertical:**
+```js
+await mergeImages(['1.jpg', '2.jpg', 'wide.jpg'], 'output.jpg', {background: '#000'});
+```
+
+<img width="200" src="screenshots/vertical-mixed-sizes.jpg">
+
+**Horizontal:**
+```js
+await mergeImages(['1.jpg', '2.jpg', 'tall.jpg'], 'output.jpg', {direction: 'horizontal', background: '#000'});
+```
+
+<img width="300" src="screenshots/horizontal-mixed-sizes.jpg">
+
+### Free-form positioning
+
+Place each image at exact (x, y) coordinates on an auto-sized canvas.
+
+```js
+await mergeImages(['bg.jpg', 'icon.png', 'label.png'], 'output.jpg', {
+  positions: {
+    0: {x: 0, y: 0},
+    1: {x: 10, y: 20},
+    2: {x: 100, y: 50},
+  },
+});
+```
+
+<img width="200" src="screenshots/positioned.jpg">
+
+### Grid layout
+
+Arrange images in a grid by specifying the number of columns.
+
+```js
+// 3-column grid (rows auto-calculated)
+await mergeImages(
+  ['1.jpg', '2.jpg', '3.jpg', '4.jpg', '5.jpg', '6.jpg'],
+  'output.jpg',
+  {grid: 3},
+);
+
+// Explicit 3x2 grid with spacing
+await mergeImages(
+  ['1.jpg', '2.jpg', '3.jpg', '4.jpg'],
+  'output.jpg',
+  {grid: {columns: 3, rows: 2}, offset: 10, background: '#000'},
+);
+```
+
+<img width="200" src="screenshots/grid.jpg">
+
+## API
+
+### `mergeImages(inputPaths, outputPath[, options])`
+
+Returns `Promise<void>`.
+
+#### Parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `inputPaths` | `string[]` | *required* | Paths of images to merge. |
+| `outputPath` | `string` | *required* | Output path for the merged image. |
+| `options.direction` | `'vertical' \| 'horizontal'` | `'vertical'` | Merge direction (append mode). |
+| `options.background` | `string` | `'white'` | Background color. Accepts color names, hex (`'#ff0000'`), `rgb()`, etc. |
+| `options.offset` | `number` | `0` | Spacing in pixels between images. |
+| `options.positions` | `Record<number, {x, y}>` | — | Place each image at (x, y) coordinates. |
+| `options.grid` | `number \| {columns, rows?}` | — | Arrange images in a grid layout. |
+
+> **Note:** `positions` and `grid` cannot be used together.
+> When `positions` is set, `direction` and `offset` are ignored.
+> When `grid` is set, `direction` is ignored.
+
+#### Errors
+
+| Error | Condition |
+|---|---|
+| `TypeError` | `inputPaths` is not an array or is empty. |
+| `TypeError` | `outputPath` is empty. |
+| `TypeError` | `direction` is not `'vertical'` or `'horizontal'`. |
+| `TypeError` | `offset` is negative. |
+| `TypeError` | One or more input files do not exist. |
+| `TypeError` | `positions` and `grid` are both specified. |
+| `Error` | ImageMagick command execution failed. |
 
 ## Testing
-With [npm](http://npmjs.org) do:
 
 ```sh
 npm test
 ```
 
 ## Author
-**Takuya Motoshima**
 
-* [github/takuya-motoshima](https://github.com/takuya-motoshima)
-* [twitter/TakuyaMotoshima](https://twitter.com/TakuyaMotoshima)
-* [facebook/takuya.motoshima.7](https://www.facebook.com/takuya.motoshima.7)
+**shumatsumonobu**
+
+- [GitHub](https://github.com/shumatsumonobu)
+- [X](https://x.com/shumatsumonobu)
+- [Facebook](https://www.facebook.com/takuya.motoshima.7)
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
 
 ## License
+
 [MIT](LICENSE)

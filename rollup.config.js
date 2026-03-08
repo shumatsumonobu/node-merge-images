@@ -1,33 +1,45 @@
+import {builtinModules, createRequire} from 'module';
 import typescript from 'rollup-plugin-typescript2';
-import {terser} from "rollup-plugin-terser";
-import json from 'rollup-plugin-json';
-import commonjs from 'rollup-plugin-commonjs'
-import resolve from 'rollup-plugin-node-resolve';
-import builtins from 'builtin-modules'
-import pkg from './package.json';
+import terser from '@rollup/plugin-terser';
+import json from '@rollup/plugin-json';
+import commonjs from '@rollup/plugin-commonjs';
+import resolve from '@rollup/plugin-node-resolve';
+
+const require = createRequire(import.meta.url);
+const pkg = require('./package.json');
 
 export default {
-  external: builtins,
-  // external: Object.keys(pkg['dependencies'] || []),
+  // Treat Node.js built-in modules (fs, path, os, etc.) as external dependencies.
+  external: builtinModules,
+
+  // TypeScript entry point.
   input: './src/index.ts',
+
   plugins: [
+    // Compile TypeScript and emit declaration files to the directory specified in tsconfig.
     typescript({
       tsconfigDefaults: {compilerOptions: {}},
       tsconfig: "tsconfig.json",
       tsconfigOverride: {compilerOptions: {}},
       useTsconfigDeclarationDir: true
     }),
+
+    // Minify the output bundles.
     terser(),
+
+    // Allow importing JSON files (e.g., package.json).
     json(),
-    commonjs({
-      // NOTE: Added a setting to ignore original-fs to solve "Error: Cannot find module 'original-fs'" that occurs in adm-zip.
-      ignore: ['original-fs']
-    }),
+
+    // Convert CommonJS dependencies to ES modules for bundling.
+    commonjs(),
+
+    // Resolve third-party modules from node_modules.
     resolve({
       mainFields: ['module', 'main'],
-      // preferBuiltins: false
     })
   ],
+
+  // Generate both ESM and CommonJS bundles.
   output: [
     {
       format: 'esm',
@@ -37,8 +49,4 @@ export default {
       file: pkg.main
     }
   ],
-  watch: {
-    exclude: 'node_modules/**',
-    include: 'src/**'
-  }
 }

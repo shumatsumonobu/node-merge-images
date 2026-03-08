@@ -1,3 +1,11 @@
+# Dependencies
 node_modules/
+
+# IDE settings
 .vscode/
-tests/
+
+# Test files
+__tests__/
+
+# Claude Code configuration
+.claude/
